@@ -26,11 +26,17 @@ int main() {
         exit(1);
     }
     //creating child processes
-    for (int i = 0; i < nodeCount; i++) {
-        fork();
+    for (int i = 0; i < 3-1; i++) {
+        printf("%d\n", getpid());
+        pid = fork();
+        if (pid == 0) {
+            printf("Child Process %d with pid %d\n", i+1, getpid());
+            break;
+        } else {
+            printf("Parent Process with pid %d\n", getpid());
+        }
     }
-    
-    int fd[nodeCount];
+
 
 
 
