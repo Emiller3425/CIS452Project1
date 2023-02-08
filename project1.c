@@ -9,7 +9,7 @@ int main() {
     pid_t pid;
     int nodeCount;
     int whichNode;
-    char message[] = "Apple";
+    char message[100];
 
     //getting input
     printf("How Many Nodes?\n");
@@ -31,9 +31,12 @@ int main() {
     }
 
     if (pid > 0) {
+        printf("What is the message you'd like to send?\n");
+        scanf("%s", &message);
         printf("Which node would you like to send the message to?\n");
         scanf("%d%*c", &whichNode);
-        printf("You entered: %d\n", whichNode);
+        printf("message entered: %s\n", message);
+        printf("to be sent to: %d\n", whichNode);
         //wait of somesort
     } else {
         
