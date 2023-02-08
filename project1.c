@@ -5,7 +5,7 @@
 
 int main() {
     //global variables
-    int fd[4]; //3 nodes, will give the input value as the size of the array after its working for 3
+    int fd[3][2]; //3 nodes, will give the input value as the size of the array after its working for 3
     pid_t pid;
     int nodeCount;
     int whichNode;
@@ -16,11 +16,11 @@ int main() {
     scanf("%d%*c", &nodeCount);
     printf("You entered: %d\n", nodeCount);
     //create pipe
-    int pipeCreationResult = pipe(fd);
-    //check if it was succesful
-    if (pipeCreationResult < 0) {
-        perror("Pipe creation failed");
-        exit(1);
+    for (int i = 0; i < 3; i++) {
+        if (pipe(fd[i]) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
     }
     //creating child processes
     for (int i = 0; i < 3; i++) {
@@ -29,46 +29,29 @@ int main() {
             break;
         }
     }
+    printf("pid: %d", getpid());
 
-    if (pid > 0) {
+    //establishing read and write connections might be wrong havnt tested throuroughly
+    if (pid == 0) {
+        //need to add ifs for each child process
+        //probably some sort of wait for the parent to write to the pipe
+    } else {
+        close(fd[0][0]);
+        close(fd[3-1][0]);
+        close(fd[3-1][1]);
+
         printf("What is the message you'd like to send?\n");
-        scanf("%s", &message);
+        scanf("%s%*c", &message);
         printf("Which node would you like to send the message to?\n");
         scanf("%d%*c", &whichNode);
         printf("message entered: %s\n", message);
         printf("to be sent to: %d\n", whichNode);
-        //wait of somesort
-    } else {
-        
-    }
-    //establishing read and write connections might be wrong havnt tested throuroughly
-    if (pid > 0) {
-        write(fd[1], message, sizeof(message));
-        read(fd[3], &message, sizeof(message));
-    } else {
-        if (whichNode == 1) {
-            read(fd[0], &message, sizeof(message));
-            write(fd[2], message, sizeof(message));
-            printf("Child wrote: [%s]\n", message);
-            exit(1);
-        } else {
 
-        }
-        if (whichNode == 2) {
-            read(fd[1], &message, sizeof(message));
-            write(fd[3], message, sizeof(message));
-            printf("Child wrote: [%s]\n", message);
-            exit(1);
-        } else {
+        write(fd[whichNode][1], &message, sizeof(message));
 
-        }
-        if (whichNode == 3) {
-            read(fd[2], &message, sizeof(message));
-            write(fd[0], message, sizeof(message));
-            printf("Child wrote: [%s]\n", message);
-            exit(1);
-        } else {
-            printf("Invalid Node Number\n");
+        for (int i = 0; i < 3; i++) {
+            wait(NULL);
         }
     }
+    return(0);
 }
