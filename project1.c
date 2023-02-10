@@ -12,19 +12,20 @@ int main() {
     char message[100];
     int fd[100][2]; //making space for 100 pipes cus it just makes the code easier to read and I dont think he will test greater than 100 nodes
     int i;
+    int count = 0;
 
     //getting input
     printf("How Many Nodes?\n");
     scanf("%d%*c", &nodeCount);
     printf("You entered: %d\n", nodeCount);
-    //create pipe
+    //create pipes
     for (i = 0; i < nodeCount; i++) {
         if (pipe(fd[i]) == -1) {
             perror("pipe");
             exit(EXIT_FAILURE);
         }
     }
-    printf("\nChild Processes:\n");
+    printf("\nChild Processes Started:\n");
     //creating child processes
     for (i = 0; i < nodeCount; i++) {
         pid = fork();
@@ -33,17 +34,30 @@ int main() {
         }
        printf("pid: %d\n", pid);
     }
+    
+    i = 0;
 
     //establishing read and write connections
     if (pid == 0) {
     // child process
-        int nextNode = (i + 1) % nodeCount;
-        int prevNode = (i + nodeCount - 1) % nodeCount;
-        close(fd[prevNode][1]);
-        close(fd[nextNode][0]);
+ 
+    int nextNode = (i + 1) % nodeCount;
+    int prevNode = (i + nodeCount - 1) % nodeCount;
+    close(fd[prevNode][1]);
+    close(fd[nextNode][0]);
+
+    while (1) {
         read(fd[prevNode][0], &message, sizeof(message));
-        printf("I am node %d. Received message: %s. Passing to node %d.\n", i + 1, message, nextNode + 1);
+        printf("Node %d received message: %s\n", i + 1, message);
+        count++;
+        if (count == whichNode) {
+            printf("I am node %d. I am the desired node, exiting program.\n", i + 1);
+            exit(0);
+        }
+        sleep(1);
+        printf("Node %d passing the message to node %d...\n", i + 1, nextNode + 1);
         write(fd[nextNode][1], &message, sizeof(message));
+    	}
     } else {
     // parent process
         printf("\nWhat is the message you'd like to send?\n");
